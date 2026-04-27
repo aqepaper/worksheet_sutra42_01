@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>慈心觀照學習助教</title>
 <meta property="og:title" content="慈心觀照學習助教">
-<meta property="og:description" content="研經班《佛說四十二章經》第十二章——人有二十難，慈心觀照學習單引導系統">
+<meta property="og:description" content="中台山研經班《佛說四十二章經》第十二章——人有二十難，慈心觀照學習單引導系統">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="zh_TW">
-<meta name="description" content="研經班《佛說四十二章經》第十二章——人有二十難，慈心觀照學習單引導系統">
+<meta name="description" content="中台山研經班《佛說四十二章經》第十二章——人有二十難，慈心觀照學習單引導系統">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -176,6 +176,32 @@
     color: var(--muted); margin-top: 8px; line-height: 1.5;
   }
 
+  /* 下拉選單 */
+  .select-wrap {
+    display: none;
+    margin-bottom: 10px;
+  }
+  .select-wrap.visible { display: block; }
+  #topic-select {
+    width: 100%;
+    padding: 13px 16px;
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 17px;
+    color: var(--text);
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 44px;
+  }
+  #topic-select:focus { border-color: var(--accent); }
+
   @keyframes fadeUp {
     from { opacity:0; transform:translateY(6px); }
     to   { opacity:1; transform:translateY(0); }
@@ -208,8 +234,36 @@
 </div>
 
 <footer>
+  <!-- 下拉選單（登入後顯示） -->
+  <div class="select-wrap" id="select-wrap">
+    <select id="topic-select">
+      <option value="">── 請選擇主題 ──</option>
+      <option value="一、貧窮布施難">一、貧窮布施難</option>
+      <option value="二、豪貴學道難">二、豪貴學道難</option>
+      <option value="三、棄命必死難">三、棄命必死難</option>
+      <option value="四、得覽佛經難">四、得覽佛經難</option>
+      <option value="五、生值佛世難">五、生值佛世難</option>
+      <option value="六、忍色忍欲難">六、忍色忍欲難</option>
+      <option value="七、見好不求難">七、見好不求難</option>
+      <option value="八、被辱不瞋難">八、被辱不瞋難</option>
+      <option value="九、有勢不臨難">九、有勢不臨難</option>
+      <option value="十、觸事無心難">十、觸事無心難</option>
+      <option value="十一、廣學博究難">十一、廣學博究難</option>
+      <option value="十二、除滅我慢難">十二、除滅我慢難</option>
+      <option value="十三、不輕未學難">十三、不輕未學難</option>
+      <option value="十四、心行平等難">十四、心行平等難</option>
+      <option value="十五、不說是非難">十五、不說是非難</option>
+      <option value="十六、會善知識難">十六、會善知識難</option>
+      <option value="十七、見性學道難">十七、見性學道難</option>
+      <option value="十八、隨化度人難">十八、隨化度人難</option>
+      <option value="十九、睹境不動難">十九、睹境不動難</option>
+      <option value="二十、善解方便難">二十、善解方便難</option>
+      <option value="other">二十一、其他提問</option>
+    </select>
+  </div>
+  <!-- 輸入列 -->
   <div class="input-row">
-    <textarea id="user-input" rows="1" placeholder="輸入代碼或問題，Enter 送出…"></textarea>
+    <textarea id="user-input" rows="1" placeholder="輸入4位數代碼…"></textarea>
     <button id="send-btn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -290,6 +344,27 @@ function init() {
     }
   });
 
+  // 下拉選單：選擇後自動送出
+  document.getElementById('topic-select').addEventListener('change', function() {
+    const val = this.value;
+    if (!val) return;
+    if (val === 'other') {
+      // 其他提問：隱藏下拉，顯示輸入框讓學員自由輸入
+      document.getElementById('select-wrap').classList.remove('visible');
+      hwState = null;
+      chosenDifficulty = '';
+      inputEl.placeholder = '請輸入您的問題…';
+      inputEl.focus();
+    } else {
+      // 選了某一難：設定作業狀態直接進入 step2，送出給 Claude
+      hwState = 'step2';
+      chosenDifficulty = val;
+      inputEl.value = val;
+      sendMessage(true);  // fromSelect = true
+      this.value = '';  // 重置選單
+    }
+  });
+
   inputEl.addEventListener('input', function() {
     inputEl.style.height = 'auto';
     inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
@@ -317,7 +392,7 @@ function advanceHwState(userText) {
 function setMember(code, dharmaName) {
   currentMember       = { code, dharmaName };
   conversationHistory = [];
-  hwState             = 'step1';
+  hwState             = null;   // 等下拉選擇後才進入作業流程
   chosenDifficulty    = '';
   const isGuest       = (code === '0000');
   const displayName   = isGuest ? '師兄' : dharmaName + ' 師兄';
@@ -326,6 +401,9 @@ function setMember(code, dharmaName) {
     '<span class="dot"></span>' + displayName + ' 已識別';
   const hint = document.getElementById('login-hint');
   if (hint) hint.classList.add('hidden');
+  // 登入後顯示下拉選單，輸入框改提示
+  document.getElementById('select-wrap').classList.add('visible');
+  inputEl.placeholder = '或直接輸入問題…';
 }
 
 function appendMsg(role, text) {
@@ -371,7 +449,7 @@ function setSending(val) {
 }
 
 // ── 主要送出函式 ──
-async function sendMessage() {
+async function sendMessage(fromSelect) {
   if (isSending) return;
   const text = inputEl.value.trim();
   if (!text) return;
@@ -387,29 +465,7 @@ async function sendMessage() {
       setMember(text, MEMBERS[text]);
       const isGuest  = (text === '0000');
       const name     = isGuest ? '師兄' : MEMBERS[text] + ' 師兄';
-      const greeting = '阿彌陀佛，' + name + '，歡迎使用學習助教，這次慈心觀照學習單主題，請問要寫哪一難？\n\n' +
-        '【人有二十難】\n' +
-        '一、貧窮布施難\n' +
-        '二、豪貴學道難\n' +
-        '三、棄命必死難\n' +
-        '四、得覽佛經難\n' +
-        '五、生值佛世難\n' +
-        '六、忍色忍欲難\n' +
-        '七、見好不求難\n' +
-        '八、被辱不瞋難\n' +
-        '九、有勢不臨難\n' +
-        '十、觸事無心難\n' +
-        '十一、廣學博究難\n' +
-        '十二、除滅我慢難\n' +
-        '十三、不輕未學難\n' +
-        '十四、心行平等難\n' +
-        '十五、不說是非難\n' +
-        '十六、會善知識難\n' +
-        '十七、見性學道難\n' +
-        '十八、隨化度人難\n' +
-        '十九、睹境不動難\n' +
-        '二十、善解方便難\n\n' +
-        '請告訴我您選的那一難。';
+      const greeting = '阿彌陀佛，' + name + '，歡迎使用學習助教！請從下方選單選擇您想探討的那一難，或直接輸入問題。🙏';
       appendMsg('ai', greeting);
       conversationHistory.push({ role: 'assistant', content: greeting });
     } else {
@@ -431,7 +487,11 @@ async function sendMessage() {
 
   // 已識別：處理作業流程
   const hwInstr = getHwInstruction();
-  if (hwState) { advanceHwState(text); }
+  // fromSelect：下拉選單觸發的不推進（已手動設好 step2）
+  // 其他情況：學員回答後推進到下一步
+  if (hwState && !fromSelect) {
+    advanceHwState(text);
+  }
 
   const msgWithId = '【學員：' + currentMember.dharmaName + ' 師兄（已驗證）】\n' + text + hwInstr;
   const userInner = appendMsg('user', text);
